@@ -815,6 +815,11 @@ async function loadFromFirebase() {
       if (state.projects && !Array.isArray(state.projects)) {
         state.projects = Object.values(state.projects);
       }
+      // 각 프로젝트 tags도 배열 보정
+      state.projects = state.projects.map(p => ({
+        ...p,
+        tags: Array.isArray(p.tags) ? p.tags : (p.tags ? Object.values(p.tags) : [])
+      }));
       ['education','certification','award','career'].forEach(k => {
         if (state[k] && !Array.isArray(state[k])) state[k] = Object.values(state[k]);
       });
@@ -900,7 +905,7 @@ function renderProjects() {
     card.className = 'project-card';
     card.dataset.id = p.id;
     const num = String(i+1).padStart(2,'0') + ' / ' + String(projects.length).padStart(2,'0');
-    const tagsHTML = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    const tagsHTML = (p.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
     const githubBtn = p.github ? `<a class="project-link" href="${p.github}" target="_blank" onclick="event.stopPropagation()">GitHub ↗</a>` : '';
     const liveBtn   = p.live   ? `<a class="project-link" href="${p.live}"   target="_blank" onclick="event.stopPropagation()">Live ↗</a>` : '';
     const extraBtn  = p.extra  ? `<a class="project-link" href="${p.extra}"  target="_blank" onclick="event.stopPropagation()">Docs ↗</a>` : '';
@@ -1032,6 +1037,8 @@ function toggleAdmin() {
     btn.textContent = '✕ 편집 종료';
     bar.classList.add('visible');
     document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'true');
+    renderProjects();
+    renderCareer();
     showToast('편집 모드 ON — 노란 박스 클릭해서 수정, Career 섹션 추가/수정/삭제 가능');
   } else {
     document.body.classList.remove('edit-mode');
@@ -1039,6 +1046,8 @@ function toggleAdmin() {
     btn.textContent = '✏ 편집';
     bar.classList.remove('visible');
     document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'false');
+    renderProjects();
+    renderCareer();
     saveAll();
   }
 }
