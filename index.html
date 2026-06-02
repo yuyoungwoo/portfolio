@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kim MinSeo — Java Backend Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #0f0f0d; --ink-2: #3a3a36; --ink-3: #8a8a84; --ink-4: #c8c8c0;
+  --paper: #f7f6f1; --paper-2: #eeede6; --paper-3: #e4e3da;
+  --rule: #d0cfc6;
+  --serif: 'DM Serif Display', serif; --mono: 'DM Mono', monospace; --sans: 'Noto Sans KR', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--paper); color: var(--ink); font-size: 14px; line-height: 1.6; }
+
+/* NOISE */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+.reveal { opacity:0; animation: fadeUp 0.6s ease forwards; }
+.d1{animation-delay:.05s} .d2{animation-delay:.15s} .d3{animation-delay:.25s}
+.d4{animation-delay:.35s} .d5{animation-delay:.45s} .d6{animation-delay:.55s}
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 200; background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 52px;
+}
+.nav-logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; }
+.nav-links { display: flex; gap: 28px; list-style: none; }
+.nav-links a { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-decoration: none; transition: color .2s; }
+.nav-links a:hover { color: var(--ink); }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); font-family: var(--mono); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #4caf50; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* PASSWORD MODAL */
+.pw-overlay {
+  display:none; position:fixed; inset:0; background:rgba(10,10,8,.6);
+  z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px);
+}
+.pw-overlay.visible { display:flex; }
+.pw-box {
+  background:var(--paper); border:1px solid var(--rule); padding:32px 28px;
+  width:320px; display:flex; flex-direction:column; gap:14px;
+}
+.pw-title { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink); }
+.pw-input {
+  width:100%; font-family:var(--mono); font-size:13px; padding:10px 12px;
+  border:1px solid var(--rule); background:var(--paper-2); color:var(--ink); outline:none;
+  transition:border-color .15s;
+}
+.pw-input:focus { border-color:var(--ink-3); }
+.pw-error { font-family:var(--mono); font-size:10px; color:#c0392b; display:none; }
+.pw-error.visible { display:block; }
+.pw-btn-row { display:flex; gap:8px; justify-content:flex-end; }
+.pw-btn {
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  padding:8px 16px; border:1px solid var(--rule); background:transparent; color:var(--ink-2); cursor:pointer; transition:all .15s;
+}
+.pw-btn:hover { border-color:var(--ink-3); }
+.pw-btn.primary { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.pw-btn.primary:hover { background:var(--ink-2); }
+
+/* ADMIN TOGGLE */
+.admin-toggle {
+  font-family: var(--mono); font-size: 10px; padding: 5px 12px;
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-3);
+  cursor: pointer; letter-spacing: .06em; text-transform: uppercase;
+  transition: all .2s; display: none;
+}
+.admin-toggle.unlocked { display: inline-flex; align-items: center; gap: 5px; }
+.admin-toggle:hover { border-color: var(--ink-3); color: var(--ink); }
+.admin-toggle.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ADMIN BAR */
+.admin-bar {
+  display: none; background: var(--ink); color: var(--paper);
+  padding: 10px 40px; font-family: var(--mono); font-size: 11px;
+  align-items: center; justify-content: space-between; gap: 12px;
+  border-bottom: 2px solid #333;
+}
+.admin-bar.visible { display: flex; }
+.admin-bar-left { display: flex; align-items: center; gap: 10px; }
+.admin-bar span { color: #aaa; }
+.admin-bar strong { color: #fff; }
+.admin-hint { font-size: 10px; color: #666; }
+
+/* EDITABLE fields */
+.editable {
+  outline: none; cursor: text;
+  transition: background .15s, box-shadow .15s;
+}
+.edit-mode .editable {
+  background: rgba(255,255,160,0.12);
+  box-shadow: 0 0 0 1.5px #c8b400 inset;
+  border-radius: 2px;
+  cursor: text;
+}
+.edit-mode .editable:focus {
+  background: rgba(255,255,160,0.22);
+  box-shadow: 0 0 0 2px #c8b400 inset;
+}
+.edit-mode .editable:empty:before {
+  content: attr(data-placeholder);
+  color: #bbb;
+  font-style: italic;
+}
+
+/* HERO */
+.hero { display: grid; grid-template-columns: 1fr 340px; border-bottom: 1px solid var(--rule); min-height: 480px; }
+.hero-left { padding: 56px 48px 56px 40px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: space-between; }
+.hero-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 20px; }
+.hero-name { font-family: var(--serif); font-size: clamp(48px,7vw,80px); line-height: .95; color: var(--ink); margin-bottom: 24px; }
+.hero-name em { font-style: italic; color: var(--ink-2); }
+.hero-tagline { font-size: 15px; color: var(--ink-2); line-height: 1.7; max-width: 480px; margin-bottom: 36px; font-weight: 300; }
+.hero-tagline strong { font-weight: 500; color: var(--ink); font-style: italic; }
+.hero-actions { display: flex; gap: 12px; align-items: center; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--ink); color: var(--paper); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; font-family: var(--mono); transition: background .2s, transform .1s; }
+.btn-primary:hover { background: var(--ink-2); transform: translateY(-1px); }
+.btn-ghost { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: 1px solid var(--rule); color: var(--ink-2); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; font-family: var(--mono); transition: border-color .2s, color .2s; }
+.btn-ghost:hover { border-color: var(--ink-3); color: var(--ink); }
+
+.hero-right { padding: 40px 32px; display: flex; flex-direction: column; }
+.stat-row { padding: 18px 0; border-bottom: 1px solid var(--rule); }
+.stat-row:last-child { border-bottom: none; }
+.stat-num { font-family: var(--serif); font-size: 38px; color: var(--ink); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 10px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; font-family: var(--mono); }
+
+/* SECTION HEADER */
+.section-header { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid var(--rule); }
+.section-title { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.section-count { font-family: var(--mono); font-size: 10px; color: var(--ink-4); }
+
+/* PROJECTS GRID */
+.projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--rule); min-height: 60px; }
+
+.project-card {
+  padding: 32px 28px 28px;
+  border-right: 1px solid var(--rule);
+  cursor: pointer; transition: background .2s;
+  text-decoration: none; color: inherit; display: flex;
+  flex-direction: column; position: relative; overflow: hidden;
+}
+.project-card::after {
+  content: ''; position: absolute; left: 0; top: 0;
+  width: 2px; height: 0; background: var(--ink); transition: height .3s ease;
+}
+.project-card:hover::after { height: 100%; }
+.project-card:hover { background: var(--paper-2); }
+/* every 3rd card no right border */
+.project-card:nth-child(3n) { border-right: none; }
+/* if card count not multiple of 3, last row bottom borders */
+.project-card { border-bottom: 1px solid var(--rule); }
+
+.project-num { font-family: var(--mono); font-size: 10px; color: var(--ink-4); margin-bottom: 14px; }
+.project-name { font-family: var(--serif); font-size: 22px; color: var(--ink); margin-bottom: 10px; line-height: 1.15; }
+.project-desc { font-size: 12px; color: var(--ink-3); line-height: 1.6; margin-bottom: 14px; font-weight: 300; flex: 1; }
+.project-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.tag { font-family: var(--mono); font-size: 9px; padding: 3px 8px; border: 1px solid var(--paper-3); color: var(--ink-3); background: var(--paper-2); }
+.project-card:hover .tag { border-color: var(--rule); }
+
+.project-link-row {
+  display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap;
+}
+.project-link {
+  font-family: var(--mono); font-size: 9px; color: var(--ink-3);
+  text-decoration: none; padding: 3px 8px;
+  border: 1px solid var(--rule); transition: all .15s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.project-link:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.project-arrow { font-size: 14px; color: var(--ink-4); margin-top: 10px; display: block; transition: transform .2s, color .2s; }
+.project-card:hover .project-arrow { transform: translateX(4px); color: var(--ink-2); }
+
+/* ADD PROJECT BTN */
+.add-project-btn {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 20px; border-right: none; cursor: pointer;
+  background: transparent; transition: background .2s;
+  border: none; font-family: var(--sans); color: var(--ink-3);
+  gap: 8px; border-bottom: 1px solid var(--rule);
+}
+.add-project-btn:hover { background: var(--paper-2); }
+.add-project-icon { font-size: 28px; color: var(--ink-4); line-height: 1; }
+.add-project-label { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); }
+.edit-mode .add-project-btn { display: flex; }
+
+/* EDIT overlay on cards in edit mode */
+.edit-mode .project-card { cursor: default; }
+.edit-mode .project-card:hover::after { height: 0; }
+.card-edit-controls {
+  display: none; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+}
+.edit-mode .card-edit-controls { display: flex; }
+.card-btn {
+  font-family: var(--mono); font-size: 9px; padding: 4px 10px;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--ink-3);
+  cursor: pointer; letter-spacing: .05em; transition: all .15s;
+}
+.card-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+.card-btn.danger:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+.card-tag-input {
+  font-family: var(--mono); font-size: 9px; padding: 3px 8px;
+  border: 1px dashed var(--ink-4); background: transparent; color: var(--ink-3);
+  outline: none; width: 90px;
+}
+.card-tag-input:focus { border-color: var(--ink-3); }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(10,10,8,.55);
+  z-index: 9000; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--paper); border: 1px solid var(--rule); width: 560px; max-width: 95vw;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-3); line-height: 1; padding: 0 4px; }
+.modal-close:hover { color: var(--ink); }
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.field-label { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+.field-input, .field-textarea {
+  width: 100%; font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background: var(--paper-2); border: 1px solid var(--rule);
+  padding: 10px 12px; outline: none; transition: border-color .15s;
+  resize: none;
+}
+.field-input:focus, .field-textarea:focus { border-color: var(--ink-3); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--rule); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-btn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 9px 20px; border: 1px solid var(--rule); cursor: pointer;
+  background: transparent; color: var(--ink-2); transition: all .15s;
+}
+.modal-btn:hover { border-color: var(--ink-3); }
+.modal-btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.modal-btn.primary:hover { background: var(--ink-2); }
+
+/* SKILLS */
+.skills-section { display: grid; grid-template-columns: 240px 1fr; border-bottom: 1px solid var(--rule); }
+.skills-label { padding: 40px; border-right: 1px solid var(--rule); display: flex; align-items: center; }
+.skills-label-text { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); writing-mode: vertical-rl; transform: rotate(180deg); }
+.skills-body { padding: 40px; display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
+.skill-group-title { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 12px; }
+.skill-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.skill-list li { font-size: 13px; color: var(--ink-2); font-weight: 300; display: flex; align-items: center; gap: 8px; }
+.skill-list li::before { content: '—'; font-family: var(--mono); color: var(--ink-4); font-size: 10px; }
+
+/* ABOUT */
+.about-section { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--rule); }
+.about-left { padding: 56px 48px 56px 40px; border-right: 1px solid var(--rule); }
+.about-eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 24px; }
+.about-quote { font-family: var(--serif); font-size: 28px; line-height: 1.3; color: var(--ink); margin-bottom: 24px; }
+.about-quote em { color: var(--ink-2); }
+.about-text { font-size: 13px; color: var(--ink-2); line-height: 1.8; font-weight: 300; }
+.about-right { padding: 56px 40px; }
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { display: grid; grid-template-columns: 80px 1fr; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+.timeline-item:last-child { border-bottom: none; }
+.timeline-year { font-family: var(--mono); font-size: 10px; color: var(--ink-4); padding-top: 2px; }
+.tl-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.tl-desc { font-size: 11px; color: var(--ink-3); font-weight: 300; line-height: 1.5; }
+.badge-award { display: inline-block; font-family: var(--mono); font-size: 9px; padding: 2px 7px; background: var(--ink); color: var(--paper); margin-left: 6px; vertical-align: middle; }
+
+/* CONTACT */
+.contact-section { display: grid; grid-template-columns: 1fr 1fr; }
+.contact-left { padding: 64px 48px 64px 40px; border-right: 1px solid var(--rule); }
+.contact-big { font-family: var(--serif); font-size: clamp(36px,5vw,56px); line-height: 1.05; color: var(--ink); margin-bottom: 24px; }
+.contact-big em { color: var(--ink-2); }
+.contact-sub { font-size: 13px; color: var(--ink-3); line-height: 1.7; margin-bottom: 36px; font-weight: 300; }
+.contact-links { display: flex; flex-direction: column; gap: 0; }
+.contact-link { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); text-decoration: none; padding: 12px 0; border-bottom: 1px solid var(--rule); transition: color .2s; }
+.contact-link:hover { color: var(--ink); }
+.contact-link-label { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); width: 60px; }
+.contact-right { padding: 64px 40px; background: var(--paper-2); display: flex; flex-direction: column; justify-content: space-between; }
+.contact-meta-title { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 20px; }
+.contact-meta-item { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.contact-meta-item:last-child { border-bottom: none; }
+.contact-meta-key { font-size: 11px; color: var(--ink-3); font-weight: 300; }
+.contact-meta-val { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+
+/* FOOTER */
+footer { display: flex; align-items: center; justify-content: space-between; padding: 16px 40px; border-top: 1px solid var(--rule); }
+.footer-left { font-family: var(--mono); font-size: 10px; color: var(--ink-4); }
+.footer-right { display: flex; gap: 20px; }
+.footer-right a { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-decoration: none; transition: color .2s; }
+.footer-right a:hover { color: var(--ink); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 11px;
+  padding: 10px 20px; z-index: 9999; opacity: 0; transition: all .3s;
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* CAREER SECTION */
+.career-section { border-bottom: 1px solid var(--rule); }
+.career-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--rule);
+}
+.career-col {
+  padding: 36px 32px;
+  border-right: 1px solid var(--rule);
+}
+.career-col:last-child { border-right: none; }
+.career-col-title {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 20px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--rule);
+}
+.career-item { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--paper-3); }
+.career-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.career-item-year {
+  font-family: var(--mono); font-size: 9px; color: var(--ink-4);
+  margin-bottom: 4px;
+}
+.career-item-title { font-size: 12px; font-weight: 500; color: var(--ink); margin-bottom: 2px; line-height: 1.4; }
+.career-item-desc { font-size: 11px; color: var(--ink-3); font-weight: 300; line-height: 1.5; }
+.badge-cert {
+  display: inline-block; font-family: var(--mono); font-size: 8px;
+  padding: 1px 6px; border: 1px solid var(--rule);
+  color: var(--ink-3); margin-top: 3px;
+}
+
+.career-item-controls {
+  display: none; gap: 6px; margin-top: 6px;
+}
+.edit-mode .career-item-controls { display: flex; }
+.career-add-btn {
+  display: none; width: 100%; margin-top: 12px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-4);
+  padding: 8px; border: 1px dashed var(--rule);
+  background: transparent; cursor: pointer; transition: all .15s;
+}
+.career-add-btn:hover { border-color: var(--ink-3); color: var(--ink); background: var(--paper-2); }
+.edit-mode .career-add-btn { display: block; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  nav { padding: 0 20px; } .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-left { padding: 40px 20px; border-right: none; }
+  .hero-right { border-top: 1px solid var(--rule); padding: 24px 20px; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .project-card { border-right: none !important; }
+  .skills-section { grid-template-columns: 1fr; }
+  .skills-label { display: none; }
+  .skills-body { grid-template-columns: 1fr 1fr; padding: 24px 20px; }
+  .about-section, .contact-section { grid-template-columns: 1fr; }
+  .about-left, .contact-left { border-right: none; padding: 40px 20px; }
+  .about-right { padding: 0 20px 40px; }
+  .contact-right { padding: 32px 20px; }
+  .career-grid { grid-template-columns: 1fr 1fr; }
+  .career-col { border-bottom: 1px solid var(--rule); }
+  .section-header { padding: 16px 20px; }
+  footer { padding: 16px 20px; flex-direction: column; gap: 8px; }
+  .admin-bar { padding: 10px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">프로젝트 추가</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">프로젝트 이름 *</div>
+        <input class="field-input" id="f-name" placeholder="e.g. CodeCollab">
+      </div>
+      <div>
+        <div class="field-label">한 줄 설명 *</div>
+        <input class="field-input" id="f-desc" placeholder="어떤 프로젝트인지 간단히">
+      </div>
+      <div>
+        <div class="field-label">기술 스택 (쉼표로 구분)</div>
+        <input class="field-input" id="f-tags" placeholder="Java, Spring Boot, PostgreSQL">
+      </div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">GitHub 링크</div>
+          <input class="field-input" id="f-github" placeholder="https://github.com/...">
+        </div>
+        <div>
+          <div class="field-label">배포 링크 (Live)</div>
+          <input class="field-input" id="f-live" placeholder="https://...">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">추가 링크 (노션, 발표자료 등)</div>
+        <input class="field-input" id="f-extra" placeholder="https://notion.so/...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="closeModal()">취소</button>
+      <button class="modal-btn primary" onclick="saveProject()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAREER MODAL -->
+<div class="modal-overlay" id="careerModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="cm-title">추가</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">날짜 <span id="cm-date-placeholder" style="font-weight:300; text-transform:none; letter-spacing:0; color:var(--ink-4)"></span></div>
+        <input class="field-input" id="cm-date" placeholder="예) 2023.08 또는 2020-2021">
+      </div>
+      <div>
+        <div class="field-label">이름 / 내용 *</div>
+        <input class="field-input" id="cm-name" placeholder="기관명, 자격증명, 수상명 등">
+      </div>
+      <div>
+        <div class="field-label">부가 설명 (선택)</div>
+        <input class="field-input" id="cm-desc" placeholder="직급, 자격 종류, 세부 내용 등">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="closeModal()">취소</button>
+      <button class="modal-btn primary" onclick="saveCareerItem()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="pw-overlay" id="pwOverlay">
+  <div class="pw-box">
+    <div class="pw-title">관리자 인증</div>
+    <input class="pw-input" id="pwInput" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkPassword()">
+    <div class="pw-error" id="pwError">비밀번호가 올바르지 않습니다</div>
+    <div class="pw-btn-row">
+      <button class="pw-btn" onclick="closePwModal()">취소</button>
+      <button class="pw-btn primary" onclick="checkPassword()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="reveal d1">
+  <a href="#" class="nav-logo">KMS · DEV</a>
+  <ul class="nav-links">
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#career">Career</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-status">
+      <span class="status-dot"></span>
+      부산 · available
+    </div>
+    <button class="admin-toggle" id="adminToggle" onclick="toggleAdmin()">✏ 편집</button>
+    <button id="lockBtn" onclick="openPwModal()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink-4);padding:4px 6px;transition:color .2s;" title="관리자">🔒</button>
+  </div>
+</nav>
+
+<!-- ADMIN BAR -->
+<div class="admin-bar" id="adminBar">
+  <div class="admin-bar-left">
+    <strong>✏ 편집 모드</strong>
+    <span class="admin-hint">— 노란 테두리 영역을 클릭하면 직접 수정할 수 있어요. 프로젝트 추가/삭제도 가능.</span>
+  </div>
+  <button class="modal-btn primary" onclick="saveAll()" style="font-size:10px; padding:6px 14px;">💾 저장</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left reveal d2">
+    <div>
+      <div class="hero-eyebrow editable" contenteditable="false" data-key="eyebrow" data-placeholder="직책 · 학교">Java Backend Developer · 경성대학교 컴퓨터공학과</div>
+      <h1 class="hero-name">
+        <span class="editable" contenteditable="false" data-key="firstName" data-placeholder="이름">Kim</span><br/>
+        <em><span class="editable" contenteditable="false" data-key="lastName" data-placeholder="성">MinSeo</span></em>
+      </h1>
+      <p class="hero-tagline editable" contenteditable="false" data-key="tagline" data-placeholder="소개 문구">
+        백엔드 개발자를 꿈꾸는 1학년 CS 학생.<br/>
+        <strong>"일단 만들어봐야 안다"</strong>는 믿음으로<br/>
+        실전 프로젝트로 성장 중입니다.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <a href="#projects" class="btn-primary">프로젝트 보기 →</a>
+      <a id="githubLink" href="https://github.com/yuyoungwoo" class="btn-ghost" target="_blank">GitHub ↗</a>
+      <a href="https://blog.naver.com/yuyoungwoo_" class="btn-ghost" target="_blank">Blog ↗</a>
+    </div>
+  </div>
+  <div class="hero-right reveal d3">
+    <div class="stat-row">
+      <div class="stat-num editable" contenteditable="false" data-key="stat1num" data-placeholder="숫자">3+</div>
+      <div class="stat-label editable" contenteditable="false" data-key="stat1label" data-placeholder="라벨">실전 프로젝트</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-num editable" contenteditable="false" data-key="stat2num" data-placeholder="숫자">🥇</div>
+      <div class="stat-label editable" contenteditable="false" data-key="stat2label" data-placeholder="라벨">지역 기능경기대회 금상</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-num editable" contenteditable="false" data-key="stat3num" data-placeholder="숫자">2025</div>
+      <div class="stat-label editable" contenteditable="false" data-key="stat3label" data-placeholder="라벨">경성대학교 입학</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-num editable" contenteditable="false" data-key="stat4num" data-placeholder="숫자">Java</div>
+      <div class="stat-label editable" contenteditable="false" data-key="stat4label" data-placeholder="라벨">주력 언어</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<div id="projects">
+  <div class="section-header reveal d3">
+    <span class="section-title">Selected Projects</span>
+    <span class="section-count" id="projectCount">00</span>
+  </div>
+  <div class="projects-grid reveal d4" id="projectsGrid">
+    <!-- JS로 렌더링 -->
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div id="skills">
+  <div class="skills-section reveal d4">
+    <div class="skills-label">
+      <span class="skills-label-text">Technical Skills</span>
+    </div>
+    <div class="skills-body">
+      <div>
+        <div class="skill-group-title">Backend</div>
+        <ul class="skill-list" id="skillBackend">
+          <li class="editable" contenteditable="false" data-key="sb0">Java (Spring Boot, MVC)</li>
+          <li class="editable" contenteditable="false" data-key="sb1">Node.js / Express</li>
+          <li class="editable" contenteditable="false" data-key="sb2">REST API 설계</li>
+          <li class="editable" contenteditable="false" data-key="sb3">Socket.io (WebSocket)</li>
+          <li class="editable" contenteditable="false" data-key="sb4">Tomcat / WAR 배포</li>
+        </ul>
+      </div>
+      <div>
+        <div class="skill-group-title">Database</div>
+        <ul class="skill-list">
+          <li class="editable" contenteditable="false" data-key="sd0">Oracle XE / SQL</li>
+          <li class="editable" contenteditable="false" data-key="sd1">PostgreSQL</li>
+          <li class="editable" contenteditable="false" data-key="sd2">JDBC</li>
+          <li class="editable" contenteditable="false" data-key="sd3">집계 함수 / 서브쿼리</li>
+          <li class="editable" contenteditable="false" data-key="sd4">ERD 설계</li>
+        </ul>
+      </div>
+      <div>
+        <div class="skill-group-title">Tools &amp; Etc</div>
+        <ul class="skill-list">
+          <li class="editable" contenteditable="false" data-key="st0">Git / GitHub</li>
+          <li class="editable" contenteditable="false" data-key="st1">IntelliJ IDEA</li>
+          <li class="editable" contenteditable="false" data-key="st2">React + Vite</li>
+          <li class="editable" contenteditable="false" data-key="st3">ChromeDriver</li>
+          <li class="editable" contenteditable="false" data-key="st4">Linux (Ubuntu)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="about">
+  <div class="about-section reveal d5">
+    <div class="about-left">
+      <div class="about-eyebrow">About</div>
+      <blockquote class="about-quote editable" contenteditable="false" data-key="quote" data-placeholder="인생 모토나 핵심 문구">
+        "일단 만들어봐야<br/><em>안다."</em>
+      </blockquote>
+      <p class="about-text editable" contenteditable="false" data-key="aboutText" data-placeholder="자기소개 텍스트">
+        경성대학교 컴퓨터공학과 1학년으로, Java 백엔드 개발자를 목표로 달리고 있습니다.<br/><br/>
+        이론만으로는 알 수 없다는 믿음으로, 입학 전부터 실전 프로젝트를 만들어왔습니다.
+        실시간 협업 툴부터 데이터 크롤러까지, 기획부터 배포까지 직접 경험했습니다.<br/><br/>
+        지역 기능경기대회 금상을 수상했고, 창업 아이디어 경진대회에도 참가하며
+        개발을 넘어 서비스 설계 관점도 함께 키우고 있습니다.
+      </p>
+    </div>
+    <div class="about-right">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl0y">2025</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl0t">경성대학교 컴퓨터공학과 입학</div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl0d">Java, SQL, 회로, 물리 등 CS 기초 이수 중</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl1y">2025</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl1t">지역 기능경기대회 금상 <span class="badge-award">🥇 GOLD</span></div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl1d">기술 실력으로 입상</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl2y">2025</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl2t">경성 창업아이템 경진대회 참가</div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl2d">LocalPick, CrewBus — AI 기반 로컬 여행 큐레이션 서비스 기획</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl3y">2025</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl3t">CodeCollab 팀 프로젝트 완성</div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl3d">실시간 코드 리뷰 플랫폼 — 풀스택 개발 및 한국어 기술 문서화</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl4y">2022–23</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl4t">바론코리아 대리 · 비주솔루션 연구원</div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl4d">실무 개발 경험 3년 이상 축적</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year editable" contenteditable="false" data-key="tl5y">2019</div>
+          <div>
+            <div class="tl-title editable" contenteditable="false" data-key="tl5t">스타트업 위크엔드 워크샵 고등부 최우수</div>
+            <div class="tl-desc editable" contenteditable="false" data-key="tl5d">유니티 VR 프로젝트로 수상</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAREER -->
+<div id="career">
+  <div class="career-section reveal d5">
+    <div class="section-header">
+      <span class="section-title">Education · Certification · Award · Career</span>
+    </div>
+    <div class="career-grid" id="careerGrid"><!-- JS 렌더링 --></div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div id="contact">
+  <div class="contact-section reveal d6">
+    <div class="contact-left">
+      <h2 class="contact-big">함께<br/><em>만들어요.</em></h2>
+      <p class="contact-sub editable" contenteditable="false" data-key="contactSub" data-placeholder="컨택 안내 문구">
+        인턴십, 협업 프로젝트, 멘토링 등<br/>어떤 제안이든 환영합니다.
+      </p>
+      <div class="contact-links">
+        <div class="contact-link" style="cursor:default;">
+          <span class="contact-link-label">Email</span>
+          <span class="editable" contenteditable="false" data-key="email" data-placeholder="이메일 주소">minseo343829@gmail.com</span>
+        </div>
+        <a id="githubLink2" href="https://github.com/yuyoungwoo" class="contact-link" target="_blank">
+          <span class="contact-link-label">GitHub</span>
+          <span class="editable" contenteditable="false" data-key="github" data-placeholder="github.com/...">github.com/yuyoungwoo</span>
+        </a>
+        <a href="https://blog.naver.com/yuyoungwoo_" class="contact-link" target="_blank">
+          <span class="contact-link-label">Blog</span>
+          <span class="editable" contenteditable="false" data-key="blog" data-placeholder="블로그 주소">blog.naver.com/yuyoungwoo_</span>
+        </a>
+        <a class="contact-link">
+          <span class="contact-link-label">Location</span>
+          <span class="editable" contenteditable="false" data-key="location" data-placeholder="위치">부산, 대한민국</span>
+        </a>
+      </div>
+    </div>
+    <div class="contact-right">
+      <div>
+        <div class="contact-meta-title">Info</div>
+        <div>
+          <div class="contact-meta-item">
+            <span class="contact-meta-key">재학 중</span>
+            <span class="contact-meta-val editable" contenteditable="false" data-key="school" data-placeholder="학교">경성대학교 · CS</span>
+          </div>
+          <div class="contact-meta-item">
+            <span class="contact-meta-key">학년</span>
+            <span class="contact-meta-val editable" contenteditable="false" data-key="grade" data-placeholder="학년">1학년 (2025)</span>
+          </div>
+          <div class="contact-meta-item">
+            <span class="contact-meta-key">주력 기술</span>
+            <span class="contact-meta-val editable" contenteditable="false" data-key="maintech" data-placeholder="기술">Java · Spring</span>
+          </div>
+          <div class="contact-meta-item">
+            <span class="contact-meta-key">목표</span>
+            <span class="contact-meta-val editable" contenteditable="false" data-key="goal" data-placeholder="목표">Java Backend Dev</span>
+          </div>
+          <div class="contact-meta-item">
+            <span class="contact-meta-key">상태</span>
+            <span class="contact-meta-val editable" contenteditable="false" data-key="status" data-placeholder="상태">구직 가능 ✓</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--rule);">
+        <p style="font-size:11px; color:var(--ink-4); font-family:var(--mono); line-height:1.6;" class="editable" contenteditable="false" data-key="closingWord" data-placeholder="마무리 문구">
+          "코드로 증명하는<br/>개발자가 되겠습니다."
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left editable" contenteditable="false" data-key="footerText" data-placeholder="푸터 텍스트">© 2025 Kim MinSeo · 경성대학교 컴퓨터공학과</div>
+  <div class="footer-right">
+    <a href="https://github.com/yuyoungwoo" target="_blank">GitHub</a>
+    <a href="https://blog.naver.com/yuyoungwoo_" target="_blank">Blog</a>
+    <span style="font-family:var(--mono); font-size:10px; color:var(--ink-3);">minseo343829@gmail.com</span>
+    <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ Top</a>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════
+const FB_URL   = 'https://kms-portfolio-default-rtdb.firebaseio.com';
+const PW_HASH  = '93d9f9083475d2555257cebace48e0a36bdb6b5e4fecba23346e6762022834b8';
+// ↑ 비밀번호 변경 시: SHA-256 해시값으로 교체
+// 온라인 변환: https://emn178.github.io/online-tools/sha256.html
+
+// ═══════════════════════════════════════════════
+//  STORAGE (Firebase + localStorage 캐시)
+// ═══════════════════════════════════════════════
+const STORAGE_KEY = 'yw_portfolio_v3';
+
+// 날짜 정렬용 숫자 변환 (YYYY.MM or YYYY-YYYY or YYYY → 내림차순)
+function dateToNum(str) {
+  if (!str) return 0;
+  const m = str.match(/(\d{4})/);
+  return m ? parseInt(m[1]) : 0;
+}
+function sortByDate(arr) {
+  return [...arr].sort((a, b) => dateToNum(b.date) - dateToNum(a.date));
+}
+
+const DEFAULT = {
+  projects: [
+    { id:1, name:'CodeCollab', desc:'실시간 코드 리뷰 & 협업 플랫폼. 이메일 인증, 코드 실행, 멘션 알림 시스템까지 팀 프로젝트로 완성.', tags:['Node.js','Socket.io','PostgreSQL','React','Glot.io API'], github:'https://github.com/yuyoungwoo/collab-frontend', live:'', extra:'' },
+    { id:2, name:'LCK Crawler', desc:'LCK 경기 데이터를 자동 수집하는 Java 웹 크롤러. ChromeDriver + Oracle DB 기반 게시판 연동.', tags:['Java','JSP','Oracle XE','ChromeDriver','Tomcat 9'], github:'https://github.com/yuyoungwoo', live:'', extra:'' },
+    { id:3, name:'맛집 게시판', desc:'Spring MVC 기반 CRUD 웹 애플리케이션. JDBC로 Oracle 연동, IntelliJ + WAR 배포까지 경험.', tags:['Java','Spring MVC','JDBC','Oracle','JSP'], github:'https://github.com/yuyoungwoo', live:'', extra:'' }
+  ],
+  education: [
+    { id:101, date:'2023', title:'웹 융합 SW기반 빅데이터 솔루션 개발자 양성과정', desc:'' },
+    { id:102, date:'2021', title:'KG아이티뱅크 부산학원', desc:'C언어 외 8과목 수료' },
+    { id:103, date:'2020', title:'중소조선연구원 로봇 자동용접 전문가 양성과정', desc:'' },
+    { id:104, date:'2020', title:'SW 교육센터 동아리 (고등 1기)', desc:'C언어 & 스크래치' },
+    { id:105, date:'2019', title:'스타트업 위크엔드 워크샵', desc:'유니티 VR 개발' },
+    { id:106, date:'2019', title:'부산 SW교육지원센터', desc:'유니티 VR 강좌' }
+  ],
+  certification: [
+    { id:201, date:'2023.08', title:'1종 보통 자동차 운전면허증', desc:'' },
+    { id:202, date:'2020.08', title:'워드프로세서', desc:'국가기술자격' },
+    { id:203, date:'2020.07', title:'정보처리기능사', desc:'국가기술자격' },
+    { id:204, date:'2018.07', title:'GTQ 2급', desc:'그래픽기술자격' },
+    { id:205, date:'2018.06', title:'ITQ A등급 — 한글·엑셀', desc:'정보기술자격' }
+  ],
+  award: [
+    { id:301, date:'2025', title:'지역 기능경기대회 금상 🥇', desc:'' },
+    { id:302, date:'2019', title:'스타트업 위크엔드 워크샵 고등부 최우수', desc:'장르 : VR (유니티)' }
+  ],
+  career: [
+    { id:401, date:'2022-2023', title:'바론코리아', desc:'대리' },
+    { id:402, date:'2021-2022', title:'비주솔루션', desc:'연구원' },
+    { id:403, date:'2020-2021', title:'바론코리아', desc:'사원' }
+  ],
+  texts: {}
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULT));
+
+// Firebase에서 데이터 불러오기
+async function loadFromFirebase() {
+  try {
+    const res = await fetch(`${FB_URL}/portfolio.json`);
+    if (!res.ok) throw new Error('fetch fail');
+    const data = await res.json();
+    if (data) {
+      ['projects','education','certification','award','career','texts'].forEach(k => {
+        if (data[k]) state[k] = data[k];
+      });
+      // projects가 객체면 배열로 변환
+      if (state.projects && !Array.isArray(state.projects)) {
+        state.projects = Object.values(state.projects);
+      }
+      ['education','certification','award','career'].forEach(k => {
+        if (state[k] && !Array.isArray(state[k])) state[k] = Object.values(state[k]);
+      });
+    }
+  } catch(e) {
+    // Firebase 실패시 localStorage 캐시 사용
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        ['projects','education','certification','award','career','texts'].forEach(k => {
+          if (parsed[k]) state[k] = parsed[k];
+        });
+      }
+    } catch(e2) {}
+  }
+  // localStorage 캐시 업데이트
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  restoreTexts();
+  renderProjects();
+  renderCareer();
+}
+
+// Firebase에 저장
+async function saveToFirebase() {
+  try {
+    const res = await fetch(`${FB_URL}/portfolio.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+    if (!res.ok) throw new Error('save fail');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('💾 저장됐어요!');
+  } catch(e) {
+    // Firebase 저장 실패시 localStorage에만 저장
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    showToast('⚠ 로컬에만 저장됐어요 (네트워크 확인)');
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      ['education','certification','award','career'].forEach(k => {
+        if (!parsed[k]) parsed[k] = DEFAULT[k];
+      });
+      return parsed;
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+
+function saveState() {
+  document.querySelectorAll('.editable[data-key]').forEach(el => {
+    state.texts[el.dataset.key] = el.innerHTML;
+  });
+}
+
+function restoreTexts() {
+  if (!state.texts) return;
+  Object.entries(state.texts).forEach(([key, val]) => {
+    const el = document.querySelector(`.editable[data-key="${key}"]`);
+    if (el) el.innerHTML = val;
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  PROJECTS RENDER
+// ═══════════════════════════════════════════════
+function renderProjects() {
+  const grid = document.getElementById('projectsGrid');
+  const projects = state.projects;
+  document.getElementById('projectCount').textContent = String(projects.length).padStart(2,'0');
+  const statNum = document.querySelector(".stat-num[data-key=\"stat1num\"]");
+  if (statNum) statNum.textContent = projects.length + "+";
+  grid.innerHTML = '';
+
+  projects.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.dataset.id = p.id;
+    const num = String(i+1).padStart(2,'0') + ' / ' + String(projects.length).padStart(2,'0');
+    const tagsHTML = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
+    const githubBtn = p.github ? `<a class="project-link" href="${p.github}" target="_blank" onclick="event.stopPropagation()">GitHub ↗</a>` : '';
+    const liveBtn   = p.live   ? `<a class="project-link" href="${p.live}"   target="_blank" onclick="event.stopPropagation()">Live ↗</a>` : '';
+    const extraBtn  = p.extra  ? `<a class="project-link" href="${p.extra}"  target="_blank" onclick="event.stopPropagation()">Docs ↗</a>` : '';
+    const linksHTML = (githubBtn||liveBtn||extraBtn) ? `<div class="project-link-row">${githubBtn}${liveBtn}${extraBtn}</div>` : '';
+    card.innerHTML = `
+      <div class="project-num">${num}</div>
+      <div class="project-name">${p.name}</div>
+      <p class="project-desc">${p.desc}</p>
+      <div class="project-tags">${tagsHTML}</div>
+      ${linksHTML}
+      <span class="project-arrow" style="font-size:12px; margin-top:10px; display:flex; align-items:center; gap:6px; color:var(--ink-3)">상세 보기 →</span>
+      <div class="card-edit-controls">
+        <button class="card-btn" onclick="openProjectModal(${p.id})">✏ 수정</button>
+        <button class="card-btn danger" onclick="deleteProject(${p.id})">✕ 삭제</button>
+      </div>`;
+    card.addEventListener('click', () => {
+      if (document.body.classList.contains('edit-mode')) return;
+      window.location.href = `project-detail.html?id=${p.id}`;
+    });
+    grid.appendChild(card);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-project-btn';
+  addBtn.innerHTML = `<span class="add-project-icon">＋</span><span class="add-project-label">프로젝트 추가</span>`;
+  addBtn.onclick = () => openProjectModal();
+  grid.appendChild(addBtn);
+}
+
+// ═══════════════════════════════════════════════
+//  CAREER RENDER
+// ═══════════════════════════════════════════════
+const CAREER_COLS = [
+  { key:'education',    label:'교육 이력',  datePlaceholder:'2023 또는 2020.09' },
+  { key:'certification',label:'자격증',     datePlaceholder:'2023.08' },
+  { key:'award',        label:'수상 내역',  datePlaceholder:'2025' },
+  { key:'career',       label:'경력 사항',  datePlaceholder:'2020-2021' }
+];
+
+function renderCareer() {
+  const grid = document.getElementById('careerGrid');
+  grid.innerHTML = '';
+
+  CAREER_COLS.forEach(col => {
+    const div = document.createElement('div');
+    div.className = 'career-col';
+
+    const items = sortByDate(state[col.key]);
+    const itemsHTML = items.map(item => `
+      <div class="career-item" data-id="${item.id}" data-cat="${col.key}">
+        <div class="career-item-year">${item.date}</div>
+        <div class="career-item-title">${item.title}</div>
+        ${item.desc ? `<div class="career-item-desc">${item.desc}</div>` : ''}
+        <div class="career-item-controls">
+          <button class="card-btn" onclick="openCareerModal('${col.key}',${item.id})">✏</button>
+          <button class="card-btn danger" onclick="deleteCareerItem('${col.key}',${item.id})">✕</button>
+        </div>
+      </div>`).join('');
+
+    div.innerHTML = `
+      <div class="career-col-title">${col.label}</div>
+      ${itemsHTML}
+      <button class="career-add-btn" onclick="openCareerModal('${col.key}')">＋ 추가</button>`;
+
+    grid.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  PASSWORD AUTH
+// ═══════════════════════════════════════════════
+let isAuthenticated = false;
+let isAdmin = false;
+
+function openPwModal() {
+  if (isAuthenticated) {
+    // 이미 인증됨 → 로그아웃
+    isAuthenticated = false;
+    if (isAdmin) toggleAdmin(); // 편집 모드 종료
+    document.getElementById('adminToggle').classList.remove('unlocked');
+    document.getElementById('lockBtn').textContent = '🔒';
+    showToast('로그아웃 됐어요');
+    return;
+  }
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').classList.remove('visible');
+  document.getElementById('pwOverlay').classList.add('visible');
+  setTimeout(() => document.getElementById('pwInput').focus(), 100);
+}
+
+function closePwModal() {
+  document.getElementById('pwOverlay').classList.remove('visible');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('pwInput').value;
+  const hash = await sha256(input);
+  if (hash === PW_HASH) {
+    isAuthenticated = true;
+    closePwModal();
+    document.getElementById('adminToggle').classList.add('unlocked');
+    document.getElementById('lockBtn').textContent = '🔓';
+    showToast('인증됐어요! 편집 버튼을 눌러주세요');
+  } else {
+    document.getElementById('pwError').classList.add('visible');
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+}
+
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  ADMIN MODE
+// ═══════════════════════════════════════════════
+function toggleAdmin() {
+  if (!isAuthenticated) { openPwModal(); return; }
+  isAdmin = !isAdmin;
+  const btn = document.getElementById('adminToggle');
+  const bar = document.getElementById('adminBar');
+  if (isAdmin) {
+    document.body.classList.add('edit-mode');
+    btn.classList.add('active');
+    btn.textContent = '✕ 편집 종료';
+    bar.classList.add('visible');
+    document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'true');
+    showToast('편집 모드 ON — 노란 박스 클릭해서 수정, Career 섹션 추가/수정/삭제 가능');
+  } else {
+    document.body.classList.remove('edit-mode');
+    btn.classList.remove('active');
+    btn.textContent = '✏ 편집';
+    bar.classList.remove('visible');
+    document.querySelectorAll('.editable').forEach(el => el.contentEditable = 'false');
+    saveAll();
+  }
+}
+
+function saveAll() {
+  saveState();
+  saveToFirebase();
+}
+
+// ═══════════════════════════════════════════════
+//  PROJECT MODAL
+// ═══════════════════════════════════════════════
+let editingProjectId = null;
+
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  const overlay = document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent = id ? '프로젝트 수정' : '프로젝트 추가';
+  if (id) {
+    const p = state.projects.find(x => x.id === id);
+    document.getElementById('f-name').value   = p.name;
+    document.getElementById('f-desc').value   = p.desc;
+    document.getElementById('f-tags').value   = p.tags.join(', ');
+    document.getElementById('f-github').value = p.github;
+    document.getElementById('f-live').value   = p.live;
+    document.getElementById('f-extra').value  = p.extra;
+  } else {
+    ['f-name','f-desc','f-tags','f-github','f-live','f-extra'].forEach(fid => document.getElementById(fid).value = '');
+  }
+  overlay.classList.add('visible');
+  document.getElementById('f-name').focus();
+}
+
+function saveProject() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('⚠ 프로젝트 이름을 입력해주세요'); return; }
+  const desc   = document.getElementById('f-desc').value.trim();
+  const tags   = document.getElementById('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const github = document.getElementById('f-github').value.trim();
+  const live   = document.getElementById('f-live').value.trim();
+  const extra  = document.getElementById('f-extra').value.trim();
+  if (editingProjectId) {
+    const idx = state.projects.findIndex(x => x.id === editingProjectId);
+    if (idx > -1) state.projects[idx] = { id: editingProjectId, name, desc, tags, github, live, extra };
+    showToast('✓ 프로젝트 수정됐어요');
+  } else {
+    state.projects.push({ id: Date.now(), name, desc, tags, github, live, extra });
+    showToast('✓ 프로젝트 추가됐어요!');
+  }
+  saveState(); renderProjects(); closeModal();
+}
+
+function deleteProject(id) {
+  const p = state.projects.find(x => x.id === id);
+  if (!confirm(`"${p.name}" 프로젝트를 삭제할까요?`)) return;
+  state.projects = state.projects.filter(x => x.id !== id);
+  saveState(); renderProjects();
+  showToast('삭제됐어요');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('visible');
+  document.getElementById('careerModalOverlay').classList.remove('visible');
+  editingProjectId = null;
+  editingCareerCat = null;
+  editingCareerId  = null;
+}
+
+// ═══════════════════════════════════════════════
+//  CAREER MODAL
+// ═══════════════════════════════════════════════
+let editingCareerCat = null;
+let editingCareerId  = null;
+
+function openCareerModal(cat, id) {
+  editingCareerCat = cat;
+  editingCareerId  = id || null;
+  const col = CAREER_COLS.find(c => c.key === cat);
+  const overlay = document.getElementById('careerModalOverlay');
+  document.getElementById('cm-title').textContent = id ? `${col.label} 수정` : `${col.label} 추가`;
+  document.getElementById('cm-date-placeholder').textContent = col.datePlaceholder;
+
+  if (id) {
+    const item = state[cat].find(x => x.id === id);
+    document.getElementById('cm-date').value  = item.date;
+    document.getElementById('cm-name').value  = item.title;
+    document.getElementById('cm-desc').value  = item.desc;
+  } else {
+    document.getElementById('cm-date').value  = '';
+    document.getElementById('cm-name').value  = '';
+    document.getElementById('cm-desc').value  = '';
+  }
+  overlay.classList.add('visible');
+  document.getElementById('cm-date').focus();
+}
+
+function saveCareerItem() {
+  const date  = document.getElementById('cm-date').value.trim();
+  const title = document.getElementById('cm-name').value.trim();
+  const desc  = document.getElementById('cm-desc').value.trim();
+  if (!title) { showToast('⚠ 이름/내용을 입력해주세요'); return; }
+
+  if (editingCareerId) {
+    const idx = state[editingCareerCat].findIndex(x => x.id === editingCareerId);
+    if (idx > -1) state[editingCareerCat][idx] = { id: editingCareerId, date, title, desc };
+    showToast('✓ 수정됐어요');
+  } else {
+    state[editingCareerCat].push({ id: Date.now(), date, title, desc });
+    showToast('✓ 추가됐어요!');
+  }
+  saveState(); renderCareer(); closeModal();
+}
+
+function deleteCareerItem(cat, id) {
+  const item = state[cat].find(x => x.id === id);
+  if (!confirm(`"${item.title}"을 삭제할까요?`)) return;
+  state[cat] = state[cat].filter(x => x.id !== id);
+  saveState(); renderCareer();
+  showToast('삭제됐어요');
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // localStorage 캐시로 먼저 빠르게 렌더 (깜빡임 방지)
+  const cached = loadState();
+  if (cached) {
+    Object.assign(state, cached);
+    restoreTexts();
+    renderProjects();
+    renderCareer();
+  }
+  // Firebase에서 최신 데이터 로드
+  loadFromFirebase();
+
+  [document.getElementById('modalOverlay'), document.getElementById('careerModalOverlay')].forEach(overlay => {
+    overlay.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closePwModal();
+    }
+  });
+
+  // 비밀번호 모달 배경 클릭 닫기
+  document.getElementById('pwOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closePwModal();
+  });
+});
+</script>
+</body>
+</html>
